@@ -1,15 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './FamousSection.css';
+import axios from 'axios';
 
 function FamousSection() {
+
   let [famousPersonName, setPersonName] = useState('');
   let [famousPersonRole, setPersonRole] = useState('');
   let [famousPeopleArray, setPeopleArray] = useState([]);
 
   // TODO: on load, call the fetchPeople() function
+    useEffect( () => {
+    fetchPeople();
+  }, []) // run once and never again
 
   const fetchPeople = () => {
     // TODO: fetch the list of people from the server
+    axios.get('/people')
+    .then (response => {
+      console.log(response.data);
+      setPeopleArray(response.data)
+    })
+    .catch ( err => {
+      console.log(err);
+    })
   }
 
   const addPerson = (evt) => {
@@ -20,16 +33,37 @@ function FamousSection() {
 
     // HINT: the server is expecting a person object 
     //       with a `name` and a `role` property
+    axios.post ('/people', {
+      name: famousPersonName,
+      role: famousPersonRole
+    })
+    .then (response => {
+      fetchPeople()
+      setPersonName('')
+      setPersonRole('')
+    })
+    .catch (err => {
+      console.log(err);
+    })
   
   }
 
     return (
       <section className="new-person-section">
         <form onSubmit={addPerson}>
+
           <label htmlFor="name-input">Name:</label>
-          <input id="name-input" onChange={e => setPersonName(e.target.value)} />
+          <input 
+          id="name-input" 
+          value={famousPersonName}
+          onChange={e => setPersonName(e.target.value)} />
+
           <label htmlFor="role-input">Famous for:</label>
-          <input id="role-input" onChange={e => setPersonRole(e.target.value)} />
+          <input 
+          id="role-input"
+          value={famousPersonRole}
+          onChange={e => setPersonRole(e.target.value)} />
+
           <button type="submit">Done</button>
         </form>
         <p>
@@ -37,6 +71,11 @@ function FamousSection() {
         </p>
         <ul>
           {/* TODO: Render the list of famous people */}
+          {famousPeopleArray.map(people => (
+            <li key={people.id}>
+              {people.name} is famous for {people.role}
+            </li>
+          ))}
         </ul>
       </section>
     );
